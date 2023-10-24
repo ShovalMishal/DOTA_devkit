@@ -43,6 +43,7 @@ def parse_dota_poly(filename):
         [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
     """
     objects = []
+    gsd = None
     #print('filename:', filename)
     f = []
     if (sys.version_info >= (3, 5)):
@@ -58,6 +59,8 @@ def parse_dota_poly(filename):
         # if count < 2:
         #     continue
         if line:
+            if line.startswith('gsd:'):
+                gsd = float(line.split('gsd:')[-1])
             splitlines = line.strip().split(' ')
             object_struct = {}
             ### clear the wrong name after check all the data
@@ -83,6 +86,8 @@ def parse_dota_poly(filename):
                                      ]
             gtpoly = shgeo.Polygon(object_struct['poly'])
             object_struct['area'] = gtpoly.area
+            if gsd:
+                object_struct['gsd'] = gsd
             # poly = list(map(lambda x:np.array(x), object_struct['poly']))
             # object_struct['long-axis'] = max(distance(poly[0], poly[1]), distance(poly[1], poly[2]))
             # object_struct['short-axis'] = min(distance(poly[0], poly[1]), distance(poly[1], poly[2]))

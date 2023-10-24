@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon, Circle
 import numpy as np
-import dota_utils as util
+import DOTA_devkit.dota_utils as util
 from collections import defaultdict
 import cv2
 
