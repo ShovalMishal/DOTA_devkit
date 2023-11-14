@@ -1,4 +1,4 @@
-#The code is used for visulization, inspired from cocoapi
+# The code is used for visulization, inspired from cocoapi
 #  Licensed under the Simplified BSD License [see bsd.txt]
 
 import os
@@ -6,19 +6,21 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon, Circle
 import numpy as np
-import dota_utils as util
+import DOTA_devkit.dota_utils as util
 from collections import defaultdict
 import cv2
+
 
 def _isArrayLike(obj):
     if type(obj) == str:
         return False
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
 
+
 class DOTA:
     def __init__(self, basepath):
         self.basepath = basepath
-        self.labelpath = os.path.join(basepath, 'labelTxt')
+        self.labelpath = os.path.join(basepath, 'annfiles')
         self.imagepath = os.path.join(basepath, 'images')
         self.imgpaths = util.GetFileFromThisRootDir(self.labelpath)
         self.imglist = [util.custombasename(x) for x in self.imgpaths]
@@ -27,12 +29,12 @@ class DOTA:
         self.createIndex()
 
     def createIndex(self):
-        for filename in self.imgpaths:
-            objects = util.parse_dota_poly(filename)
+        for idx, filename in enumerate(self.imgpaths):
+            objects = util.parse_dota_poly_detr_format(filename, idx)
             imgid = util.custombasename(filename)
             self.ImgToAnns[imgid] = objects
-            for obj in objects:
-                cat = obj['name']
+            for obj_label in objects["labels"]:
+                cat = util.wordname_18[obj_label]
                 self.catToImgs[cat].append(imgid)
 
     def getImgIds(self, catNms=[]):
@@ -52,7 +54,7 @@ class DOTA:
                     imgids &= set(self.catToImgs[cat])
         return list(imgids)
 
-    def loadAnns(self, catNms=[], imgId = None, difficult=None):
+    def loadAnns(self, catNms=[], imgId=None, difficult=None):
         """
         :param catNms: category names
         :param imgId: the img to load anns
@@ -64,6 +66,7 @@ class DOTA:
             return objects
         outobjects = [obj for obj in objects if (obj['name'] in catNms)]
         return outobjects
+
     def showAnns(self, objects, imgId, range):
         """
         :param catNms: category names
@@ -96,6 +99,7 @@ class DOTA:
         ax.add_collection(p)
         p = PatchCollection(circles, facecolors='red')
         ax.add_collection(p)
+
     def loadImgs(self, imgids=[]):
         """
         :param imgids: integer ids specifying img
@@ -111,6 +115,9 @@ class DOTA:
             img = cv2.imread(filename)
             imgs.append(img)
         return imgs
+
+    def getCatIds(self):
+        return list(range(len(util.wordname_18)))
 
 # if __name__ == '__main__':
 #     examplesplit = DOTA('examplesplit')

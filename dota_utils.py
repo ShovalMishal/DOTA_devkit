@@ -5,13 +5,19 @@ import shapely.geometry as shgeo
 import os
 import re
 import math
+
+import torch
+
 # import polyiou
 """
     some basic functions which are useful for process DOTA data
 """
 
-wordname_15 = ['plane', 'baseball-diamond', 'bridge', 'ground-track-field', 'small-vehicle', 'large-vehicle', 'ship', 'tennis-court',
-               'basketball-court', 'storage-tank',  'soccer-ball-field', 'roundabout', 'harbor', 'swimming-pool', 'helicopter']
+wordname_18 = ['plane', 'baseball-diamond', 'bridge', 'ground-track-field',
+         'small-vehicle', 'large-vehicle', 'ship', 'tennis-court',
+         'basketball-court', 'storage-tank', 'soccer-ball-field', 'roundabout',
+         'harbor', 'swimming-pool', 'helicopter', 'container-crane', 'airport',
+         'helipad']
 
 def custombasename(fullname):
     return os.path.basename(os.path.splitext(fullname)[0])
@@ -95,6 +101,73 @@ def parse_dota_poly(filename):
             break
     return objects
 
+def parse_dota_poly_detr_format(filename, idx):
+    """
+        parse the dota ground truth in the format:
+        [x_min, y_min, w, h]
+    """
+    objects = {}
+    #print('filename:', filename)
+    f = []
+    if (sys.version_info >= (3, 5)):
+        fd = open(filename, 'r')
+        f = fd
+    elif (sys.version_info >= 2.7):
+        fd = codecs.open(filename, 'r')
+        f = fd
+    all_boxes = []
+    labels = []
+    areas = []
+    while True:
+        line = f.readline()
+        # count = count + 1
+        # if count < 2:
+        #     continue
+        if line:
+            splitlines = line.strip().split(' ')
+            object_struct = {}
+            ### clear the wrong name after check all the data
+            #if (len(splitlines) >= 9) and (splitlines[8] in classname):
+            if (len(splitlines) < 9):
+                continue
+            if (len(splitlines) >= 9):
+                    object_struct['name'] = splitlines[8]
+            if (len(splitlines) == 9):
+                object_struct['difficult'] = '0'
+            elif (len(splitlines) >= 10):
+                # if splitlines[9] == '1':
+                # if (splitlines[9] == 'tr'):
+                #     object_struct['difficult'] = '1'
+                # else:
+                object_struct['difficult'] = splitlines[9]
+                # else:
+                #     object_struct['difficult'] = 0
+            poly = [(float(splitlines[0]), float(splitlines[1])),
+                                     (float(splitlines[2]), float(splitlines[3])),
+                                     (float(splitlines[4]), float(splitlines[5])),
+                                     (float(splitlines[6]), float(splitlines[7]))
+                                     ]
+            gtpoly = shgeo.Polygon(poly)
+            object_struct['area'] = gtpoly.area
+            min_x = min(float(splitlines[0]), float(splitlines[2]), float(splitlines[4]), float(splitlines[6]))
+            max_x = max(float(splitlines[0]), float(splitlines[2]), float(splitlines[4]), float(splitlines[6]))
+            min_y = min(float(splitlines[1]), float(splitlines[3]), float(splitlines[5]), float(splitlines[7]))
+            max_y = max(float(splitlines[1]), float(splitlines[3]), float(splitlines[5]), float(splitlines[7]))
+            curr_box = torch.tensor((min_x, min_y, min(max_x, 1024), min(max_y, 1024)))
+            all_boxes.append(curr_box)
+            labels.append(int(wordname_18.index(splitlines[8])))
+            areas.append(gtpoly.area)
+        else:
+            break
+    objects['boxes'] = torch.stack(all_boxes, dim=0) if len(all_boxes)>0 else torch.tensor(all_boxes)
+    objects['labels'] = torch.tensor(labels)
+    objects['area'] = torch.tensor(areas)
+    objects["orig_size"] = torch.as_tensor([int(1024), int(1024)])
+    objects["size"] = torch.as_tensor([int(1024), int(1024)])
+    objects["image_id"] = torch.tensor([idx])
+
+    return objects
+
 def parse_dota_poly2(filename):
     """
         parse the dota ground truth in the format:
@@ -137,7 +210,7 @@ def groundtruth2Task1(srcpath, dstpath):
     filelist = GetFileFromThisRootDir(srcpath)
     # names = [custombasename(x.strip())for x in filelist]
     filedict = {}
-    for cls in wordname_15:
+    for cls in wordname_18:
         fd = open(os.path.join(dstpath, 'Task1_') + cls + r'.txt', 'w')
         filedict[cls] = fd
     for filepath in filelist:
