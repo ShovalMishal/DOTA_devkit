@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon, Circle
 import numpy as np
-import dota_utils as util
+import DOTA_devkit.dota_utils as util
 from collections import defaultdict
 import cv2
 
@@ -24,13 +24,15 @@ class DOTA:
         self.imglist = [util.custombasename(x) for x in self.imgpaths]
         self.catToImgs = defaultdict(list)
         self.ImgToAnns = defaultdict(list)
+        self.ImgToGsd = defaultdict(list)
         self.createIndex()
 
     def createIndex(self):
         for filename in self.imgpaths:
-            objects = util.parse_dota_poly(filename)
+            objects, gsd = util.parse_dota_poly(filename)
             imgid = util.custombasename(filename)
             self.ImgToAnns[imgid] = objects
+            self.ImgToGsd[imgid] = gsd
             for obj in objects:
                 cat = obj['name']
                 self.catToImgs[cat].append(imgid)
@@ -64,6 +66,11 @@ class DOTA:
             return objects
         outobjects = [obj for obj in objects if (obj['name'] in catNms)]
         return outobjects
+
+    def loadGsd(self, imgId=None):
+        gsd = self.ImgToGsd[imgId]
+        return gsd
+
     def showAnns(self, objects, imgId, range):
         """
         :param catNms: category names
@@ -112,10 +119,11 @@ class DOTA:
             imgs.append(img)
         return imgs
 
-# if __name__ == '__main__':
-#     examplesplit = DOTA('examplesplit')
-#     imgids = examplesplit.getImgIds(catNms=['plane'])
-#     img = examplesplit.loadImgs(imgids)
-#     for imgid in imgids:
-#         anns = examplesplit.loadAnns(imgId=imgid)
-#         examplesplit.showAnns(anns, imgid, 2)
+if __name__ == '__main__':
+    examplesplit = DOTA('/home/shoval/Documents/Repositories/data/gsd_normalized_dataset/train')
+    dataset2 = DOTA("/home/shoval/Documents/Repositories/data/split_ss_dota/train/")
+    imgids = examplesplit.getImgIds(catNms=['small-vehicle'])
+    img = examplesplit.loadImgs(imgids)
+    for imgid in imgids:
+        anns = examplesplit.loadAnns(imgId=imgid)
+        examplesplit.showAnns(anns, imgid, 2)
