@@ -105,13 +105,13 @@ class DOTA:
         :param imgids: integer ids specifying img
         :return: loaded img objects
         """
-        print('isarralike:', _isArrayLike(imgids))
+        # print('isarralike:', _isArrayLike(imgids))
         imgids = imgids if _isArrayLike(imgids) else [imgids]
-        print('imgids:', imgids)
+        # print('imgids:', imgids)
         imgs = []
         for imgid in imgids:
             filename = os.path.join(self.imagepath, imgid + '.png')
-            print('filename:', filename)
+            # print('filename:', filename)
             img = cv2.imread(filename)
             imgs.append(img)
         return imgs
