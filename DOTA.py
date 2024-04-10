@@ -20,7 +20,7 @@ def _isArrayLike(obj):
 class DOTA:
     def __init__(self, basepath):
         self.basepath = basepath
-        self.labelpath = os.path.join(basepath, 'annfiles')
+        self.labelpath = os.path.join(basepath, 'labelTxt')
         self.imagepath = os.path.join(basepath, 'images')
         self.imgpaths = util.GetFileFromThisRootDir(self.labelpath)
         self.imglist = [util.custombasename(x) for x in self.imgpaths]
