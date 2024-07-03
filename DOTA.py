@@ -30,11 +30,11 @@ class DOTA:
 
     def createIndex(self):
         for idx, filename in enumerate(self.imgpaths):
-            objects = util.parse_dota_poly_detr_format(filename, idx)
+            objects = util.parse_dota_poly(filename)
             imgid = util.custombasename(filename)
             self.ImgToAnns[imgid] = objects
-            for obj_label in objects["labels"]:
-                cat = util.wordname_18[obj_label]
+            for obj in objects:
+                cat = obj['name']
                 self.catToImgs[cat].append(imgid)
 
     def getImgIds(self, catNms=[]):
@@ -99,6 +99,7 @@ class DOTA:
         ax.add_collection(p)
         p = PatchCollection(circles, facecolors='red')
         ax.add_collection(p)
+        plt.show()
 
     def loadImgs(self, imgids=[]):
         """
@@ -118,9 +119,9 @@ class DOTA:
 
     def getCatIds(self):
         return list(range(len(util.wordname_18)))
-
+#
 # if __name__ == '__main__':
-#     examplesplit = DOTA('examplesplit')
+#     examplesplit = DOTA('/home/shoval/Documents/Repositories/data/DOTAV2/val/')
 #     imgids = examplesplit.getImgIds(catNms=['plane'])
 #     img = examplesplit.loadImgs(imgids)
 #     for imgid in imgids:
