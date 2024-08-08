@@ -10,8 +10,10 @@ wordname_18 = ['plane', 'baseball-diamond', 'bridge', 'ground-track-field',
          'helipad']
 
 def DOTA2COCO(srcpath, destfile):
+    # create annotations folder
+    os.makedirs(os.path.dirname(destfile), exist_ok=True)
     imageparent = os.path.join(srcpath, 'images')
-    labelparent = os.path.join(srcpath, 'annfiles')
+    labelparent = os.path.join(srcpath, 'labelTxt')
 
     data_dict = {}
     info = {'contributor': 'captain group',
@@ -68,4 +70,5 @@ def DOTA2COCO(srcpath, destfile):
             image_id = image_id + 1
         json.dump(data_dict, f_out)
 if __name__ == '__main__':
-    DOTA2COCO(r'/home/shoval/Documents/Repositories/detr/datasets/dota_dataset/val/', r'/home/shoval/Documents/Repositories/detr/datasets/dota_dataset/annotations/val.json')
+    DOTA2COCO(r'/home/shoval/Documents/Repositories/data/gsd_04_normalized_dataset_rotated/test/',
+              r'/home/shoval/Documents/Repositories/data/gsd_04_normalized_dataset_rotated/test/annotations/instances.json')
