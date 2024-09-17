@@ -9,7 +9,7 @@ wordname_18 = ['plane', 'baseball-diamond', 'bridge', 'ground-track-field',
          'harbor', 'swimming-pool', 'helicopter', 'container-crane', 'airport',
          'helipad']
 
-def DOTA2COCO(srcpath, destfile):
+def DOTA2COCO(srcpath, destfile, class_agnostic=False):
     # create annotations folder
     os.makedirs(os.path.dirname(destfile), exist_ok=True)
     imageparent = os.path.join(srcpath, 'images')
@@ -54,7 +54,7 @@ def DOTA2COCO(srcpath, destfile):
             for obj in objects:
                 single_obj = {}
                 single_obj['area'] = obj['area']
-                single_obj['category_id'] = wordname_18.index(obj['name']) + 1
+                single_obj['category_id'] = wordname_18.index(obj['name']) + 1 if not class_agnostic else 1
                 single_obj['segmentation'] = []
                 single_obj['segmentation'].append(obj['poly'])
                 single_obj['iscrowd'] = 0
@@ -70,5 +70,6 @@ def DOTA2COCO(srcpath, destfile):
             image_id = image_id + 1
         json.dump(data_dict, f_out)
 if __name__ == '__main__':
-    DOTA2COCO(r'/home/shoval/Documents/Repositories/data/gsd_04_normalized_dataset_rotated/test/',
-              r'/home/shoval/Documents/Repositories/data/gsd_04_normalized_dataset_rotated/test/annotations/instances.json')
+    DOTA2COCO(r'/home/shoval/Documents/Repositories/data/gsd_02_normalized_dataset_rotated/test/',
+              r'/home/shoval/Documents/Repositories/data/gsd_02_normalized_dataset_rotated/test/annotations/instances_class_agnostic.json',
+              class_agnostic=True)
